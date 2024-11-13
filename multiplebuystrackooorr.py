@@ -37,7 +37,7 @@ telethon_client = TelegramClient('test', API_ID, API_HASH)
 
 # Authorized users and groups (store without @ symbol)
 AUTHORIZED_USERS = {'orehub1378', 'Kemoo1975', 'jeremi1234', 'Busiiiiii'}
-AUTHORIZED_GROUPS = {'THETRACKOORS'}
+AUTHORIZED_GROUPS = {'TheTrackoorzz'}
 
 # Add a dictionary to store the last processed message IDs for each chat
 last_processed_messages = defaultdict(set)
