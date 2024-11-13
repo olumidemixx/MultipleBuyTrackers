@@ -27,7 +27,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 
-PORT = 8443 #int(os.getenv("PORT", 8443))
+PORT = 8000 #int(os.getenv("PORT", 8443))
 
 
 # Create Telethon client
