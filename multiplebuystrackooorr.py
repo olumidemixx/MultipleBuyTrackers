@@ -22,12 +22,14 @@ nest_asyncio.apply()
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
 
+
+PORT = 8000 #int(os.getenv("PORT", 8443))
+
 # Telethon client configuration
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 
-PORT = 8000 #int(os.getenv("PORT", 8443))
 
 
 # Create Telethon client
