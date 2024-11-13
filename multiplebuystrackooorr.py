@@ -290,7 +290,7 @@ async def main():
     application.add_handler(CommandHandler("stop", stop))
 
     # Get the webhook URL from environment variable or use a default for local testing
-    WEBHOOK_URL = "ceb0-102-135-211-94.ngrok-free.app"
+    WEBHOOK_URL = "https://{os.getenv('RENDER_SERVICE_NAME')}.onrender.com"
     
     try:
         await application.bot.set_webhook(
@@ -320,7 +320,7 @@ def run_bot():
             listen="0.0.0.0",  # Listen on all available network interfaces
             port=PORT,         # Use the PORT from environment variable
             url_path=BOT_TOKEN,
-            webhook_url=f"ceb0-102-135-211-94.ngrok-free.app/{BOT_TOKEN}",
+            webhook_url=f"https://{os.getenv('RENDER_SERVICE_NAME')}.onrender.com/{BOT_TOKEN}",
             drop_pending_updates=True
         )
 
