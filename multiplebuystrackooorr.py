@@ -23,7 +23,7 @@ dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
 
 
-PORT = int(os.getenv("PORT", 8000))
+PORT = int(os.getenv("PORT", 10000))
 
 # Telethon client configuration
 BOT_TOKEN = os.getenv("BOT_TOKEN")
