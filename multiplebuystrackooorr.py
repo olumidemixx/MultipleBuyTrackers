@@ -23,7 +23,7 @@ dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
 
 
-PORT = int(os.getenv("PORT", 10000))
+PORT = int(os.getenv("PORT", 8080))
 
 # Telethon client configuration
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -320,7 +320,7 @@ def run_bot():
             listen="0.0.0.0",  # Listen on all available network interfaces
             port=PORT,         # Use the PORT from environment variable
             url_path=BOT_TOKEN,
-            webhook_url=f"{os.getenv('RENDER_SERVICE_NAME')}.onrender.com/{BOT_TOKEN}",
+            webhook_url=f"https://{os.getenv('RENDER_SERVICE_NAME')}.onrender.com/{BOT_TOKEN}",
             drop_pending_updates=True
         )
 
