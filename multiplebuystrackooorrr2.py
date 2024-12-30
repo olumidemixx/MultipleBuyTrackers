@@ -232,7 +232,7 @@ async def continuous_scraping(update, context):
             for message in listOfMultipleBuys:
                 #await context.bot.send_message(chat_id=chat_id, text=message)
                 current_messages.append(message)
-                await asyncio.sleep(2.0)
+                #await asyncio.sleep(2.0)
                 #logging.info(current_messages)
             #previous_messages = current_messages.copy()  # Update previous_messages to the current round's message
             
@@ -244,7 +244,7 @@ async def continuous_scraping(update, context):
                     #logging.info(message)
                     previous_messages.append(message)
                     has_change = True
-                    await asyncio.sleep(2)
+                    
 
                     if sent_count < 2:  # Check if less than 2 messages have been sent
                         await context.bot.send_message(
@@ -256,7 +256,7 @@ async def continuous_scraping(update, context):
                logging.info("no new messages")
         
         # Wait 10 seconds before starting the next round
-        await asyncio.sleep(3)
+        await asyncio.sleep(2)
 
 async def start(update, context):
     """Start the continuous message extraction process"""
@@ -300,11 +300,12 @@ async def main():
     application.add_handler(CommandHandler("stop", stop))
 
     # Get the webhook URL from environment variable or use a default for local testing
-    WEBHOOK_URL = "https://multiplebuytrackers-a9hc.onrender.com"  # Update this to your Render app URL
+    WEBHOOK_URL = "https://2aa0-197-210-85-144.ngrok-free.app"
     
     try:
         await asyncio.sleep(1.0)
         await application.bot.set_webhook(url=f"{WEBHOOK_URL}")
+        await asyncio.sleep(1.0)
         await application.run_webhook(
         listen="0.0.0.0",  # Listen on all available interfaces
         port=8443,         # Port to listen on
@@ -334,7 +335,7 @@ def run_bot():
             listen="0.0.0.0",  # Listen on all available network interfaces
             port=PORT,         # Use the PORT from environment variable
             url_path=BOT_TOKEN,
-            webhook_url=f"https://multiplebuytrackers-a9hc.onrender.com/{BOT_TOKEN}",  # Update this to your Render app URL
+            webhook_url=f"https://2aa0-197-210-85-144.ngrok-free.app/{BOT_TOKEN}",
             drop_pending_updates=True
         )
 
