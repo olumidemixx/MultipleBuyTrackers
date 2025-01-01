@@ -326,6 +326,7 @@ async def main():
 
     # Initialize Application instance for webhook mode
     application = Application.builder().token(BOT_TOKEN).build()
+    PORT = int(os.environ.get('PORT', '8080'))
 
     # Add handlers for both start and stop commands
     application.add_handler(CommandHandler("start", start))
@@ -349,7 +350,7 @@ async def main():
 
     def run_flask():
         """Run the Flask app."""
-        flask_app.run(host='0.0.0.0', port=5000)  # Run Flask on port 5000
+        flask_app.run(host='0.0.0.0', port=PORT)  # Run Flask on port 5000
 
     flask_thread = threading.Thread(target=run_flask)
     flask_thread.start()
@@ -362,7 +363,7 @@ async def main():
         await asyncio.sleep(1.0)
         await application.run_webhook(
             listen="0.0.0.0",  # Listen on all available interfaces
-            port=10000,         # Port to listen on
+            port=PORT,         # Port to listen on
             url_path="",       # Empty path to handle root requests
             webhook_url=WEBHOOK_URL,
             drop_pending_updates=True
