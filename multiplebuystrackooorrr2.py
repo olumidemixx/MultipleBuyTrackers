@@ -292,7 +292,7 @@ async def start(update, context):
     if (await check_authorization(update)):
         if update.effective_chat.id == -1002272071296:  # Check if the command is from the target gr
             global target_group_id
-            target_group_id = -1002462744306
+            target_group_id = -1002447422257
             if update.message.text.startswith(f"@{BOT_TOKEN.split(':')[0]}"):
                 last_processed_messages.clear()
                 await context.bot.send_message(
