@@ -169,8 +169,8 @@ async def extract_last_trader_messages(chat_link, limit):
                     #logging.info(third_address)
                       # Check if there are at least 3 addresses
                 else:
-                    third_address = solana_addresses[-1]
-                    #logging.info(third_address)  # Get the third Solana address
+                    third_address = solana_addresses[3]
+                    logging.info(third_address)  # Get the third Solana address
                 # Update the trader data dictionary
                 if trader_name not in trader_data:
                     trader_data[trader_name] = {'addresses': {}, 'count': 0}  # Initialize new trader entry
