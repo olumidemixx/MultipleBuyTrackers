@@ -318,24 +318,7 @@ async def start(update, context):
     
 
 # Initialize Flask app
-flask_app = Flask(__name__)
 
-@flask_app.route('/webhook', methods=['POST'])
-def webhook():
-    """Receive updates from Telegram and process them."""
-    update = request.get_json()
-    # Here you can process the update as needed
-    logging.info(f"Received update: {update}")
-    return "OK", 200
-
-@flask_app.route('/')
-def home():
-    """Check if the bot is running."""
-    return "The bot is running!", 200  # Simple message indicating the bot is active
-
-def run_flask():
-    """Run the Flask app."""
-    flask_app.run(host='0.0.0.0', port=5000)  # Run Flask on port 5000
 
 async def main():
     """Start the bot with webhook"""
@@ -348,9 +331,29 @@ async def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("stop", stop))
 
-    # Start Flask in a separate thread
+    
+    flask_app = Flask(__name__)
+
+    @flask_app.route('/webhook', methods=['POST'])
+    def webhook():
+        """Receive updates from Telegram and process them."""
+        update = request.get_json()
+        # Here you can process the update as needed
+        logging.info(f"Received update: {update}")
+        return "OK", 200
+
+    @flask_app.route('/')
+    def home():
+        """Check if the bot is running."""
+        return "The bot is running!", 200  # Simple message indicating the bot is active
+
+    def run_flask():
+        """Run the Flask app."""
+        flask_app.run(host='0.0.0.0', port=5000)  # Run Flask on port 5000
+
     flask_thread = threading.Thread(target=run_flask)
     flask_thread.start()
+    
 
     # Set the webhook for the Telegram bot
     try:
@@ -369,6 +372,7 @@ async def main():
     except Exception as e:
         logging.error(f"Error in webhook setup: {e}")
         raise
+
 
 def run_bot():
     """Runner function to handle the event loop"""
