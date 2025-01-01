@@ -9,13 +9,15 @@ import asyncio
 import sys
 import nest_asyncio
 from collections import defaultdict
-from keep_alive import keep_alive
+from flask import Flask, request  # Import Flask
+import threading  # Import threading for running Flask in a separate thread
+#from keep_alive import keep_alive
 from telegram import Chat
 
 #{os.getenv('RENDER_EXTERNAL_URL', '')}
 #PORT = int(os.getenv("PORT", 8000))
 
-keep_alive()
+#keep_alive()
 
 nest_asyncio.apply()
 WEBHOOK_URL = "https://multiplebuytrackers-a9hc.onrender.com"  # Use Render's external URL
@@ -315,6 +317,21 @@ async def start(update, context):
     
     
 
+# Initialize Flask app
+flask_app = Flask(__name__)
+
+@flask_app.route('/webhook', methods=['POST'])
+def webhook():
+    """Receive updates from Telegram and process them."""
+    update = request.get_json()
+    # Here you can process the update as needed
+    logging.info(f"Received update: {update}")
+    return "OK", 200
+
+def run_flask():
+    """Run the Flask app."""
+    flask_app.run(host='0.0.0.0', port=5000)  # Run Flask on port 5000
+
 async def main():
     """Start the bot with webhook"""
     await initialize_telethon()  # Start the Telethon client
@@ -326,21 +343,22 @@ async def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("stop", stop))
 
-    # Get the webhook URL from environment variable or use a default for local testing
-    #WEBHOOK_URL = "https://8912-102-67-1-9.ngrok-free.app"
-    WEBHOOK_URL = "https://multiplebuytrackers-a9hc.onrender.com" 
-    
+    # Start Flask in a separate thread
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.start()
+
+    # Set the webhook for the Telegram bot
     try:
         await asyncio.sleep(1.0)
-        await application.bot.set_webhook(url=f"{WEBHOOK_URL}")
+        await application.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")  # Update webhook URL
         await asyncio.sleep(1.0)
         await application.run_webhook(
-        listen="0.0.0.0",  # Listen on all available interfaces
-        port=10000,         # Port to listen on
-        url_path="",       # Empty path to handle root requests
-        webhook_url=WEBHOOK_URL,
-        drop_pending_updates=True
-    )
+            listen="0.0.0.0",  # Listen on all available interfaces
+            port=10000,         # Port to listen on
+            url_path="",       # Empty path to handle root requests
+            webhook_url=WEBHOOK_URL,
+            drop_pending_updates=True
+        )
         return application
 
     except Exception as e:
