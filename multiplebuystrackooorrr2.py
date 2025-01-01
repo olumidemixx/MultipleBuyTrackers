@@ -136,6 +136,9 @@ class Trade:
         self.mc_mcp_info = mc_mcp_info
         self.pump_type = pump_type
 
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
 async def extract_last_trader_messages(chat_link, limit):
     """Extract the last messages from the specified Telegram chat that meet the trader criteria"""
     trader_data = {}  # Dictionary to store trader information
