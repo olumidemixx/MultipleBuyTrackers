@@ -262,9 +262,10 @@ async def continuous_scraping(update, context):
             for message in current_messages[:200]:
                 
                 if message not in previous_messages[:200]:
+                    has_change = True
                     #logging.info(message)
                     previous_messages.append(message)
-                    has_change = True
+                    
                     
 
                     if sent_count < 2:  # Check if less than 2 messages have been sent
@@ -273,9 +274,11 @@ async def continuous_scraping(update, context):
                             text=message,
                             parse_mode='Markdown'
                         )
+                        await asyncio.sleep(0.5)
                         sent_count += 1  # Increment the counter
             if has_change is False:
                logging.info("no new messages")
+               await asyncio.sleep(2.5)
         
         # Wait 10 seconds before starting the next round
         await asyncio.sleep(2)
