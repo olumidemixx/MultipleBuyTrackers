@@ -322,7 +322,8 @@ async def main():
     application.add_handler(CommandHandler("stop", stop))
 
     # Get the webhook URL from environment variable or use a default for local testing
-    WEBHOOK_URL = "https://8912-102-67-1-9.ngrok-free.app"
+    #WEBHOOK_URL = "https://8912-102-67-1-9.ngrok-free.app"
+    WEBHOOK_URL = "https://multiplebuytrackers-a9hc.onrender.com" 
     
     try:
         await asyncio.sleep(1.0)
