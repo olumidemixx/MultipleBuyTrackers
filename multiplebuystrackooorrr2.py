@@ -18,6 +18,7 @@ from telegram import Chat
 keep_alive()
 
 nest_asyncio.apply()
+WEBHOOK_URL = "https://multiplebuytrackers-a9hc.onrender.com"  # Use Render's external URL
 
 # Telegram bot configuration
 dotenv_path = find_dotenv()
@@ -111,8 +112,8 @@ def extract_solana_address_and_amount(text):
         pass
         
 
-    # Return the third Solana address if it exists
-    return  matches[3]
+    # Return the third Solana address if it existslogging
+    return  matches
     #logging.info(matches)
 
 def extract_mc_mcp(text):
@@ -147,8 +148,27 @@ async def extract_last_trader_messages(chat_link, limit):
             #logging.info(trader_name)
             solana_addresses = extract_solana_address_and_amount(message.text)  # Extract all Solana addresses
             #logging.info(solana_addresses)
-            if solana_addresses:  # Check if there are at least 3 addresses
-                third_address = solana_addresses  # Get the third Solana address
+            if solana_addresses:
+                if chat_link == 'https://t.me/spark_green_bot':
+                    third_address = solana_addresses[5]
+                    #logging.info(third_address)
+                elif chat_link == 'https://t.me/ray_green_bot':
+                    third_address = solana_addresses[5]
+                    #logging.info(third_address)
+                    
+                elif chat_link == 'https://t.me/Godeye_wallet_trackerBot':
+                    third_address = solana_addresses[2]
+                    #logging.info(third_address)                    
+                    #logging.info(third_address)
+                    #ogging.info(third_address)
+                elif chat_link == 'https://t.me/Wallet_tracker_solana_spybot':
+                    third_address = solana_addresses[6]
+                    #logging.info(third_address)
+                    #logging.info(third_address)
+                      # Check if there are at least 3 addresses
+                else:
+                    third_address = solana_addresses[-1]
+                    #logging.info(third_address)  # Get the third Solana address
                 # Update the trader data dictionary
                 if trader_name not in trader_data:
                     trader_data[trader_name] = {'addresses': {}, 'count': 0}  # Initialize new trader entry
@@ -196,7 +216,7 @@ async def send_trader_messages(trader_data, chat_id, context):
     for trader_name, data in trader_data.items():
         for token, count in data['addresses'].items():
             if count == 2:  # Check if the trader bought the token more than once
-                message = f"{trader_name} bought {token} {count} times"
+                message = f"{trader_name} bought `{token}` {count} times"
                 messages_to_send.append(message)
     return messages_to_send
 
@@ -207,13 +227,14 @@ async def continuous_scraping(update, context):
     chat_id = update.effective_chat.id
 
     chat_links_with_limits = {
-        #'https://t.me/ray_green_bot': 1500,
+        'https://t.me/spark_green_bot': 30,
+        'https://t.me/ray_green_bot': 60,
         #'https://t.me/handi_cat_bot': 300,
-        #'https://t.me/Wallet_tracker_solana_spybot': 75,
-        #'https://t.me/Godeye_wallet_trackerBot': 15000,
+        'https://t.me/Wallet_tracker_solana_spybot': 30,
+        'https://t.me/Godeye_wallet_trackerBot': 60,
         #'https://t.me/GMGN_alert_bot': 150,
         #'https://t.me/Solbix_bot': 30,
-        'https://t.me/defined_bot': 500
+        'https://t.me/defined_bot': 90
     }
     #logging.info("seen")
     previous_messages = []
@@ -249,7 +270,8 @@ async def continuous_scraping(update, context):
                     if sent_count < 2:  # Check if less than 2 messages have been sent
                         await context.bot.send_message(
                             chat_id=target_group_id,
-                            text=message
+                            text=message,
+                            parse_mode='Markdown'
                         )
                         sent_count += 1  # Increment the counter
             if has_change is False:
@@ -300,7 +322,7 @@ async def main():
     application.add_handler(CommandHandler("stop", stop))
 
     # Get the webhook URL from environment variable or use a default for local testing
-    WEBHOOK_URL = "https://2aa0-197-210-85-144.ngrok-free.app"
+    WEBHOOK_URL = "https://8912-102-67-1-9.ngrok-free.app"
     
     try:
         await asyncio.sleep(1.0)
@@ -335,10 +357,9 @@ def run_bot():
             listen="0.0.0.0",  # Listen on all available network interfaces
             port=PORT,         # Use the PORT from environment variable
             url_path=BOT_TOKEN,
-            webhook_url=f"https://2aa0-197-210-85-144.ngrok-free.app/{BOT_TOKEN}",
+            webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",  # Use Render's external URL
             drop_pending_updates=True
         )
-
     except KeyboardInterrupt:
         logging.info("Bot stopped by user")
     except Exception as e:
