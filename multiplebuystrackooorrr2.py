@@ -244,6 +244,7 @@ async def continuous_scraping(update, context):
         
         
         for chat_link, limit in chat_links_with_limits.items():
+            await asyncio.sleep(0.8)
             messages = await extract_last_trader_messages(chat_link, limit)
 
             listOfMultipleBuys = await send_trader_messages(messages, chat_id, context)
@@ -274,11 +275,11 @@ async def continuous_scraping(update, context):
                             text=message,
                             parse_mode='Markdown'
                         )
-                        await asyncio.sleep(1)
+                        
                         sent_count += 1  # Increment the counter
             if has_change is False:
                logging.info("no new messages")
-               await asyncio.sleep(2.5)
+               #await asyncio.sleep()
         
         # Wait 10 seconds before starting the next round
         await asyncio.sleep(2)
