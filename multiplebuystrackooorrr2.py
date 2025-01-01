@@ -290,7 +290,7 @@ async def continuous_scraping(update, context):
 async def start(update, context):
     """Start the continuous message extraction process"""
     if (await check_authorization(update)):
-        if update.effective_chat.id == -1002447422257:#-1002272071296:  # Check if the command is from the target gr
+        if update.effective_chat.id == -1002272071296:  # Check if the command is from the target gr
             global target_group_id
             target_group_id = -1002462744306
             if update.message.text.startswith(f"@{BOT_TOKEN.split(':')[0]}"):
