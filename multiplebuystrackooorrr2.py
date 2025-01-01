@@ -328,7 +328,7 @@ def webhook():
     logging.info(f"Received update: {update}")
     return "OK", 200
 
-@flask_app.route('/', methods=['GET'])
+@flask_app.route('/')
 def home():
     """Check if the bot is running."""
     return "The bot is running!", 200  # Simple message indicating the bot is active
