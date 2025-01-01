@@ -279,6 +279,7 @@ async def continuous_scraping(update, context):
                         sent_count += 1  # Increment the counter
             if has_change is False:
                logging.info("no new messages")
+               await asyncio.sleep(2.2)
                #await asyncio.sleep()
         
         # Wait 10 seconds before starting the next round
