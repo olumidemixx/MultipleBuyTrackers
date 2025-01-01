@@ -23,7 +23,7 @@ WEBHOOK_URL = "https://multiplebuytrackers-a9hc.onrender.com"  # Use Render's ex
 # Telegram bot configuration
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
-PORT = 8443
+PORT = 10000
 # Telethon client configuration
 BOT_TOKEN = "7951730271:AAH1i5RbbJgWZ-QDGcLVBOl0tuZPJiJKOyc"
 API_ID = 21202746#int(os.getenv("API_ID"))
@@ -330,7 +330,7 @@ async def main():
         await asyncio.sleep(1.0)
         await application.run_webhook(
         listen="0.0.0.0",  # Listen on all available interfaces
-        port=8443,         # Port to listen on
+        port=10000,         # Port to listen on
         url_path="",       # Empty path to handle root requests
         webhook_url=WEBHOOK_URL,
         drop_pending_updates=True
