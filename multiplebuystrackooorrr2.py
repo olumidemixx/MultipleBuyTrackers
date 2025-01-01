@@ -328,6 +328,11 @@ def webhook():
     logging.info(f"Received update: {update}")
     return "OK", 200
 
+@flask_app.route('/', methods=['GET'])
+def home():
+    """Check if the bot is running."""
+    return "The bot is running!", 200  # Simple message indicating the bot is active
+
 def run_flask():
     """Run the Flask app."""
     flask_app.run(host='0.0.0.0', port=5000)  # Run Flask on port 5000
