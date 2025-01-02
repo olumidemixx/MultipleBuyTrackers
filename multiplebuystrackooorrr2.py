@@ -145,45 +145,46 @@ async def extract_last_trader_messages(chat_link, limit):
         logging.info(chat_link)
        
         
-        # Check if the message contains 'buy' (case insensitive)
-        if 'buy' in message.text.lower():
-            trader_name = "Trader"+extract_trader_name(message.text)  # Extract trader name
-            #logging.info(trader_name)
-            solana_addresses = extract_solana_address_and_amount(message.text)  # Extract all Solana addresses
-            #logging.info(solana_addresses)
-            if solana_addresses:
-                if chat_link == 'https://t.me/spark_green_bot':
-                    third_address = solana_addresses[5]
-                    #logging.info(third_address)
-                elif chat_link == 'https://t.me/ray_green_bot':
-                    third_address = solana_addresses[5]
-                    #logging.info(third_address)
+        try:
+            if 'buy' in message.text.lower():
+                trader_name = "Trader" + extract_trader_name(message.text)  # Extract trader name
+                #logging.info(trader_name)
+                solana_addresses = extract_solana_address_and_amount(message.text)  # Extract all Solana addresses
+                #logging.info(solana_addresses)
+                if solana_addresses:
+                    if chat_link == 'https://t.me/spark_green_bot':
+                        third_address = solana_addresses[5]
+                        #logging.info(third_address)
+                    elif chat_link == 'https://t.me/ray_green_bot':
+                        third_address = solana_addresses[5]
+                        #logging.info(third_address)
+                        
+                    elif chat_link == 'https://t.me/Godeye_wallet_trackerBot':
+                        third_address = solana_addresses[2]
+                        #logging.info(third_address)                    
+                        #logging.info(third_address)
+                        #ogging.info(third_address)
+                    elif chat_link == 'https://t.me/Wallet_tracker_solana_spybot':
+                        third_address = solana_addresses[6]
+                        #logging.info(third_address)
+                        #logging.info(third_address)
+                    else:
+                        third_address = solana_addresses[3]
+                        #logging.info(third_address)  # Get the third Solana address
+                    # Update the trader data dictionary
+                    if trader_name not in trader_data:
+                        trader_data[trader_name] = {'addresses': {}, 'count': 0}  # Initialize new trader entry
                     
-                elif chat_link == 'https://t.me/Godeye_wallet_trackerBot':
-                    third_address = solana_addresses[2]
-                    #logging.info(third_address)                    
-                    #logging.info(third_address)
-                    #ogging.info(third_address)
-                elif chat_link == 'https://t.me/Wallet_tracker_solana_spybot':
-                    third_address = solana_addresses[6]
-                    #logging.info(third_address)
-                    #logging.info(third_address)
-                      # Check if there are at least 3 addresses
-                else:
-                    third_address = solana_addresses[3]
-                    #logging.info(third_address)  # Get the third Solana address
-                # Update the trader data dictionary
-                if trader_name not in trader_data:
-                    trader_data[trader_name] = {'addresses': {}, 'count': 0}  # Initialize new trader entry
-                
-                # Check if the address already exists for this trader
-                if third_address in trader_data[trader_name]['addresses']:
-                    trader_data[trader_name]['addresses'][third_address] += 1  # Increment count for this address
-                else:
-                    trader_data[trader_name]['addresses'][third_address] = 1  # Initialize count for new address
-                
-                # Update the total count of messages for the trader
-                trader_data[trader_name]['count'] += 1
+                    # Check if the address already exists for this trader
+                    if third_address in trader_data[trader_name]['addresses']:
+                        trader_data[trader_name]['addresses'][third_address] += 1  # Increment count for this address
+                    else:
+                        trader_data[trader_name]['addresses'][third_address] = 1  # Initialize count for new address
+                    
+                    # Update the total count of messages for the trader
+                    trader_data[trader_name]['count'] += 1
+        except AttributeError as e:
+            logging.error(f"Error processing message: {e}")  # Log the error
     
     #logging.info(trader_data)
     return trader_data
