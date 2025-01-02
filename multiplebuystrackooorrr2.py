@@ -142,6 +142,7 @@ async def extract_last_trader_messages(chat_link, limit):
     
 
     async for message in telethon_client.iter_messages(chat_link, limit=limit):
+        logging.info(chat_link)
        
         
         # Check if the message contains 'buy' (case insensitive)
