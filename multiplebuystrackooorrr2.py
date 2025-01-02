@@ -183,6 +183,9 @@ async def extract_last_trader_messages(chat_link, limit):
                     
                     # Update the total count of messages for the trader
                     trader_data[trader_name]['count'] += 1
+                
+                else:
+                    continue
         except AttributeError as e:
             logging.error(f"Error processing message: {e}")  # Log the error
     
