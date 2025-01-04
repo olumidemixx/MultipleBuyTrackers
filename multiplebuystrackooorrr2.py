@@ -20,7 +20,7 @@ from telegram import Chat
 #keep_alive()
 
 nest_asyncio.apply()
-WEBHOOK_URL = "https://multiplebuytrackers-a9hc.onrender.com"  # Use Render's external URL
+WEBHOOK_URL = "https://multiplebuytrackers-72d1.onrender.com"  # Use Render's external URL
 
 # Telegram bot configuration
 dotenv_path = find_dotenv()
