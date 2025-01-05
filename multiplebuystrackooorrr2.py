@@ -25,7 +25,7 @@ WEBHOOK_URL = "https://multiplebuytrackers-72d1.onrender.com"  # Use Render's ex
 # Telegram bot configuration
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
-PORT = 10000
+PORT = 5000
 # Telethon client configuration
 BOT_TOKEN = "7951730271:AAH1i5RbbJgWZ-QDGcLVBOl0tuZPJiJKOyc"
 API_ID = 21202746#int(os.getenv("API_ID"))
