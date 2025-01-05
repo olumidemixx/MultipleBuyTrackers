@@ -165,8 +165,10 @@ async def extract_last_trader_messages(chat_link, limit):
                         #logging.info(third_address)
                         #ogging.info(third_address)
                     elif chat_link == 'https://t.me/Wallet_tracker_solana_spybot':
-                        third_address = solana_addresses[6]
-                        #logging.info(third_address)
+                        if len(solana_addresses) >= 6:  # Check if index 6 exists
+                            third_address = solana_addresses[6]
+                        else:
+                            continue  # Skip to the next message
                         #logging.info(third_address)
                     else:
                         third_address = solana_addresses[3]
