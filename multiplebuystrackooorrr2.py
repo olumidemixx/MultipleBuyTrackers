@@ -25,7 +25,7 @@ nest_asyncio.apply()
 # Telegram bot configuration
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
-PORT = 5000
+PORT = 10000
 # Telethon client configuration
 BOT_TOKEN = "7951730271:AAH1i5RbbJgWZ-QDGcLVBOl0tuZPJiJKOyc"
 API_ID = 21202746#int(os.getenv("API_ID"))
@@ -341,7 +341,7 @@ async def main():
 
     PORT = int(os.environ.get('PORT', '8080'))
     WEBHOOK_URL = "https://multiplebuytrackers-mqnw.onrender.com/telegram"
-    
+
     await application.bot.set_webhook(url=WEBHOOK_URL)
     app = Flask(__name__)
 
