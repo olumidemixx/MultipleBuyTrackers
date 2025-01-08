@@ -20,12 +20,12 @@ from telegram import Chat
 #keep_alive()
 
 nest_asyncio.apply()
-WEBHOOK_URL = "https://multiplebuytrackers-mqnw.onrender.com"  # Use Render's external URL
+WEBHOOK_URL = "https://multiplebuytrackers-72d1.onrender.com"  # Use Render's external URL
 
 # Telegram bot configuration
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
-PORT = 5000
+PORT = 10000
 # Telethon client configuration
 BOT_TOKEN = "7951730271:AAH1i5RbbJgWZ-QDGcLVBOl0tuZPJiJKOyc"
 API_ID = 21202746#int(os.getenv("API_ID"))
@@ -165,10 +165,8 @@ async def extract_last_trader_messages(chat_link, limit):
                         #logging.info(third_address)
                         #ogging.info(third_address)
                     elif chat_link == 'https://t.me/Wallet_tracker_solana_spybot':
-                        if len(solana_addresses) >= 6:  # Check if index 6 exists
-                            third_address = solana_addresses[6]
-                        else:
-                            continue  # Skip to the next message
+                        third_address = solana_addresses[6]
+                        #logging.info(third_address)
                         #logging.info(third_address)
                     else:
                         third_address = solana_addresses[3]
