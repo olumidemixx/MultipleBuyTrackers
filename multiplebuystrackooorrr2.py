@@ -25,7 +25,7 @@ WEBHOOK_URL = "https://multiplebuytrackers-mqnw.onrender.com"  # Use Render's ex
 # Telegram bot configuration
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
-PORT = 10000
+PORT = 5000
 # Telethon client configuration
 BOT_TOKEN = "7951730271:AAH1i5RbbJgWZ-QDGcLVBOl0tuZPJiJKOyc"
 API_ID = 21202746#int(os.getenv("API_ID"))
@@ -165,8 +165,10 @@ async def extract_last_trader_messages(chat_link, limit):
                         #logging.info(third_address)
                         #ogging.info(third_address)
                     elif chat_link == 'https://t.me/Wallet_tracker_solana_spybot':
-                        third_address = solana_addresses[6]
-                        #logging.info(third_address)
+                        if len(solana_addresses) >= 6:  # Check if index 6 exists
+                            third_address = solana_addresses[6]
+                        else:
+                            continue  # Skip to the next message
                         #logging.info(third_address)
                     else:
                         third_address = solana_addresses[3]
@@ -383,17 +385,7 @@ def run_bot():
     )
 
     try:
-        loop = asyncio.get_event_loop()
-        application = loop.run_until_complete(main())
-        
-        # Updated webhook configuration for Render
-        application.run_webhook(
-            listen="0.0.0.0",  # Listen on all available network interfaces
-            port=PORT,         # Use the PORT from environment variable
-            url_path=BOT_TOKEN,
-            webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",  # Use Render's external URL
-            drop_pending_updates=True
-        )
+        asyncio.run(main())  # Use asyncio.run to handle the event loop
     except KeyboardInterrupt:
         logging.info("Bot stopped by user")
     except Exception as e:
