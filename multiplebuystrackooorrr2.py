@@ -12,7 +12,7 @@ from collections import defaultdict
 from flask import Flask, request  # Import Flask
 import threading  # Import threading for running Flask in a separate thread
 #from keep_alive import keep_alive
-from telegram import Chat, Update
+from telegram import Chat
 
 #{os.getenv('RENDER_EXTERNAL_URL', '')}
 #PORT = int(os.getenv("PORT", 8000))
@@ -20,7 +20,7 @@ from telegram import Chat, Update
 #keep_alive()
 
 nest_asyncio.apply()
-#WEBHOOK_URL = "https://multiplebuytrackers-mqnw.onrender.com"  # Use Render's external URL
+WEBHOOK_URL = "https://multiplebuytrackers-clgg.onrender.com"  # Use Render's external URL
 
 # Telegram bot configuration
 dotenv_path = find_dotenv()
@@ -229,9 +229,6 @@ async def send_trader_messages(trader_data, chat_id, context):
                 messages_to_send.append(message)
     return messages_to_send
 
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-
 async def continuous_scraping(update, context):
     """Continuously scrape messages in rounds"""
     global continue_scraping
@@ -327,6 +324,25 @@ async def start(update, context):
     
     
 
+# Initialize Flask app
+flask_app = Flask(__name__)
+
+@flask_app.route('/webhook', methods=['POST'])
+def webhook():
+    """Receive updates from Telegram and process them."""
+    update = request.get_json()
+    # Here you can process the update as needed
+    logging.info(f"Received update: {update}")
+    return "OK", 200
+
+@flask_app.route('/', methods=['GET'])
+def home():
+    """Check if the bot is running."""
+    return "The bot is running!", 200  # Simple message indicating the bot is active
+
+def run_flask():
+    """Run the Flask app."""
+    flask_app.run(host='0.0.0.0', port=5000)  # Run Flask on port 5000
 
 async def main():
     """Start the bot with webhook"""
@@ -339,65 +355,52 @@ async def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("stop", stop))
 
-    PORT = int(os.environ.get('PORT', '8080'))
-    WEBHOOK_URL = "https://multiplebuytrackers-mqnw.onrender.com/telegram"
+    # Start Flask in a separate thread
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.start()
 
-    await application.bot.set_webhook(url=WEBHOOK_URL)
-    app = Flask(__name__)
-
-    @app.route('/')
-    def home():
-        return "Bot is running!"
-    
-    @app.route('/telegram', methods=['POST'])
-    def telegram_webhook():
-        if request.method == 'POST':
-            try:
-                update = Update.de_json(request.get_json(force=True), application.bot)
-                # Use the existing event loop
-                asyncio.run_coroutine_threadsafe(
-                    application.process_update(update),
-                    loop
-                ).result()
-                return 'OK'
-            except Exception as e:
-                logging.error(f"Error in webhook: {e}")
-                return 'Error', 500
-        return 'Only POST requests are allowed'
-
-
-    
-    # Run Flask in a separate thread
-    from threading import Thread
-    def run_flask():
-        app.run(host='0.0.0.0', port=PORT)
-    
-    Thread(target=run_flask).start()
-    
-    # Keep the main event loop running
-    try:
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        loop.close()
     # Set the webhook for the Telegram bot
+    try:
+        await asyncio.sleep(1.0)
+        await application.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")  # Update webhook URL
+        await asyncio.sleep(1.0)
+        await application.run_webhook(
+            listen="0.0.0.0",  # Listen on all available interfaces
+            port=10000,         # Port to listen on
+            url_path="",       # Empty path to handle root requests
+            webhook_url=WEBHOOK_URL,
+            drop_pending_updates=True
+        )
+        return application
 
+    except Exception as e:
+        logging.error(f"Error in webhook setup: {e}")
+        raise
 
-if __name__ == "__main__":
-    print("Starting bot...")
+def run_bot():
+    """Runner function to handle the event loop"""
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.INFO
     )
-    #logging.info("Bot initialization started")
-    
+
     try:
-        loop.run_until_complete(main())
+        loop = asyncio.get_event_loop()
+        application = loop.run_until_complete(main())
+        
+        # Updated webhook configuration for Render
+        application.run_webhook(
+            listen="0.0.0.0",  # Listen on all available network interfaces
+            port=PORT,         # Use the PORT from environment variable
+            url_path=BOT_TOKEN,
+            webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",  # Use Render's external URL
+            drop_pending_updates=True
+        )
     except KeyboardInterrupt:
-        print("Bot stopped by user")
         logging.info("Bot stopped by user")
     except Exception as e:
-        print(f"Fatal error: {e}")
         logging.error(f"Fatal error: {e}")
         raise
+
+if __name__ == "__main__":
+    run_bot()
