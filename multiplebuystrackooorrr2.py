@@ -385,15 +385,17 @@ def run_bot():
     )
 
     try:
-        loop = asyncio.get_event_loop()
-        # Schedule the main function as a task
-        asyncio.create_task(main())
-        loop.run_forever()  # Keep the loop running indefinitely
+        # Create a new event loop
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)  # Set the new loop as the current event loop
+        loop.run_until_complete(main())  # Run the main coroutine until it completes
     except KeyboardInterrupt:
         logging.info("Bot stopped by user")
     except Exception as e:
         logging.error(f"Fatal error: {e}")
         raise
+    finally:
+        loop.close()  # Close the loop when done
 
 if __name__ == "__main__":
     run_bot()
