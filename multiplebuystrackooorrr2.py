@@ -20,7 +20,7 @@ from telegram import Chat
 #keep_alive()
 
 nest_asyncio.apply()
-WEBHOOK_URL = "https://multiplebuytrackers-fe5n.onrender.com"  # Use Render's external URL
+WEBHOOK_URL = "https://multiplebuytrackers-clgg.onrender.com"  # Use Render's external URL
 
 # Telegram bot configuration
 dotenv_path = find_dotenv()
@@ -386,16 +386,9 @@ def run_bot():
 
     try:
         loop = asyncio.get_event_loop()
-        application = loop.run_until_complete(main())
-        
-        # Updated webhook configuration for Render
-        application.run_webhook(
-            listen="0.0.0.0",  # Listen on all available network interfaces
-            port=PORT,         # Use the PORT from environment variable
-            url_path=BOT_TOKEN,
-            webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",  # Use Render's external URL
-            drop_pending_updates=True
-        )
+        # Schedule the main function as a task
+        asyncio.create_task(main())
+        loop.run_forever()  # Keep the loop running indefinitely
     except KeyboardInterrupt:
         logging.info("Bot stopped by user")
     except Exception as e:
