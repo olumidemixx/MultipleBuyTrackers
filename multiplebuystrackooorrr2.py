@@ -355,23 +355,12 @@ async def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("stop", stop))
 
-    # Start Flask in a separate thread
-    flask_thread = threading.Thread(target=run_flask)
-    #flask_thread.start()
-    
     # Set the webhook for the Telegram bot
     try:
         await asyncio.sleep(1.0)
         await application.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")  # Update webhook URL
         await asyncio.sleep(1.0)
-        await application.run_webhook(
-            listen="0.0.0.0",  # Listen on all available interfaces
-            port=10000,         # Port to listen on
-            url_path="",       # Empty path to handle root requests
-            webhook_url=WEBHOOK_URL,
-            drop_pending_updates=True
-        )
-        return application
+        return application  # Return the application instance for further use
 
     except Exception as e:
         logging.error(f"Error in webhook setup: {e}")
@@ -386,16 +375,19 @@ def run_bot():
 
     try:
         loop = asyncio.get_event_loop()
-        application = loop.run_until_complete(main())
+        application = loop.run_until_complete(main())  # Set up the webhook
+        # Start Flask in a separate thread
+        flask_thread = threading.Thread(target=run_flask)
+        flask_thread.start()
         
-        # Updated webhook configuration for Render
-        application.run_webhook(
-            listen="0.0.0.0",  # Listen on all available network interfaces
-            port=PORT,         # Use the PORT from environment variable
-            url_path=BOT_TOKEN,
-            webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",  # Use Render's external URL
+        # Run the webhook in the main thread
+        loop.run_until_complete(application.run_webhook(
+            listen="0.0.0.0",  # Listen on all available interfaces
+            port=10000,         # Port to listen on
+            url_path="",       # Empty path to handle root requests
+            webhook_url=WEBHOOK_URL,
             drop_pending_updates=True
-        )
+        ))
     except KeyboardInterrupt:
         logging.info("Bot stopped by user")
     except Exception as e:
