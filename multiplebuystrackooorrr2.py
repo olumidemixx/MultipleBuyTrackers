@@ -357,8 +357,8 @@ async def main():
 
     # Start Flask in a separate thread
     flask_thread = threading.Thread(target=run_flask)
-    flask_thread.start()
-
+    #flask_thread.start()
+    
     # Set the webhook for the Telegram bot
     try:
         await asyncio.sleep(1.0)
@@ -385,7 +385,17 @@ def run_bot():
     )
 
     try:
-        asyncio.run(main())  # Use asyncio.run to handle the event loop
+        loop = asyncio.get_event_loop()
+        application = loop.run_until_complete(main())
+        
+        # Updated webhook configuration for Render
+        application.run_webhook(
+            listen="0.0.0.0",  # Listen on all available network interfaces
+            port=PORT,         # Use the PORT from environment variable
+            url_path=BOT_TOKEN,
+            webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",  # Use Render's external URL
+            drop_pending_updates=True
+        )
     except KeyboardInterrupt:
         logging.info("Bot stopped by user")
     except Exception as e:
