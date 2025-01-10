@@ -415,7 +415,7 @@ async def start(update, context):
     
    
     
-    
+PORT = int(os.environ.get('PORT', '8080'))
 
 async def main():
     """Start the bot with webhook"""
@@ -437,7 +437,7 @@ async def main():
         await asyncio.sleep(1.0)
         await application.run_webhook(
         listen="0.0.0.0",  # Listen on all available interfaces
-        port=8443,         # Port to listen on
+        port=PORT,         # Port to listen on
         url_path="",       # Empty path to handle root requests
         webhook_url=WEBHOOK_URL,
         drop_pending_updates=True
