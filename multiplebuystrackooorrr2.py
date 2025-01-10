@@ -46,6 +46,7 @@ async def initialize_telethon():
 # Authorized users and groups (store without @ symbol)
 AUTHORIZED_USERS = {'orehub1378', 'Kemoo1975', 'jeremi1234', 'Busiiiiii'}
 AUTHORIZED_GROUPS = {"thetrackss"}
+THETRACKOORS_CHAT_ID = -1002272071296
 
 # Add a dictionary to store the last processed message IDs for each chat
 last_processed_messages = defaultdict(set)
@@ -344,7 +345,7 @@ async def main():
     await application.initialize()
     await application.start()
     
-    session = Trade(chat_id)
+    session = Trade(THETRACKOORS_CHAT_ID)
 
     session.monitoring_task = asyncio.create_task(continuous_scraping(application, session))
     application.add_handler(CommandHandler("start", start))
