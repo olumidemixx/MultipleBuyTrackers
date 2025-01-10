@@ -415,7 +415,7 @@ async def start(update, context):
     
    
     
-PORT = int(os.environ.get('PORT', '8080'))
+PORT = 10000
 
 async def main():
     """Start the bot with webhook"""
