@@ -1,3 +1,4 @@
+
 import os
 import re
 import time
@@ -20,7 +21,7 @@ from telegram import Chat
 #keep_alive()
 
 nest_asyncio.apply()
-#WEBHOOK_URL = "https://multiplebuytrackers-x2ex.onrender.com"  # Use Render's external URL
+WEBHOOK_URL = "https://multiplebuytrackers-x2ex.onrender.com"  # Use Render's external URL
 
 # Telegram bot configuration
 dotenv_path = find_dotenv()
@@ -31,8 +32,6 @@ BOT_TOKEN = "7951730271:AAH1i5RbbJgWZ-QDGcLVBOl0tuZPJiJKOyc"
 API_ID = 21202746#int(os.getenv("API_ID"))
 API_HASH = "e700432294937e6925a83149ee7165a0"#os.getenv("API_HASH")
 
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
 
 
 
@@ -46,22 +45,17 @@ async def initialize_telethon():
 # Authorized users and groups (store without @ symbol)
 AUTHORIZED_USERS = {'orehub1378', 'Kemoo1975', 'jeremi1234', 'Busiiiiii'}
 AUTHORIZED_GROUPS = {"thetrackss"}
-THETRACKOORS_CHAT_ID = -1002272071296
 
 # Add a dictionary to store the last processed message IDs for each chat
 last_processed_messages = defaultdict(set)
 # Flag to control continuous scraping
 continue_scraping = True
 
-global chat_id
-
 async def check_authorization(update):
     """Check if the user/group is authorized to use the bot"""
     chat_id = update.effective_chat.id
     user_username = update.effective_user.username
     chat_username = update.effective_chat.username
-    
-    
     if chat_id == -1002272071296:
         return True
     
@@ -137,12 +131,11 @@ def extract_mc_mcp(text):
     #return None
 
 class Trade:
-    def __init__(self, trader, amount, mc_mcp_info, pump_type,id):
+    def __init__(self, trader, amount, mc_mcp_info, pump_type):
         self.trader = trader
         self.amount = amount
         self.mc_mcp_info = mc_mcp_info
         self.pump_type = pump_type
-        self.chat_id = id
 
 async def extract_last_trader_messages(chat_link, limit):
     """Extract the last messages from the specified Telegram chat that meet the trader criteria"""
@@ -331,81 +324,84 @@ async def start(update, context):
    
     
     
-from flask import Flask
-#from threading import Thread
-from telegram import Update
-from flask import request
+PORT = int(os.environ.get('PORT', '8080'))
+# Initialize Flask app
+flask_app = Flask(__name__)
 
+@flask_app.route('/webhook', methods=['POST'])
+def webhook():
+    """Receive updates from Telegram and process them."""
+    update = request.get_json()
+    # Here you can process the update as needed
+    logging.info(f"Received update: {update}")
+    return "OK", 200
+
+@flask_app.route('/', methods=['GET'])
+def home():
+    """Check if the bot is running."""
+    return "The bot is running!", 200  # Simple message indicating the bot is active
+
+def run_flask():
+    """Run the Flask app."""
+    flask_app.run(host='0.0.0.0', port=10000)  # Run Flask on port 5000
 
 async def main():
-    global application
-    await initialize_telethon()
+    """Start the bot with webhook"""
+    await initialize_telethon()  # Start the Telethon client
 
+    # Initialize Application instance for webhook mode
     application = Application.builder().token(BOT_TOKEN).build()
-    await application.initialize()
-    await application.start()
-    
-    session = Trade(THETRACKOORS_CHAT_ID)
 
-    session.monitoring_task = asyncio.create_task(continuous_scraping(application, session))
+    # Add handlers for both start and stop commands
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("stop", stop))
 
-    PORT = int(os.environ.get('PORT', '8080'))
-    WEBHOOK_URL = "https://multiplebuytrackers-x2ex.onrender.com/telegram"
-    await application.bot.set_webhook(url=WEBHOOK_URL)
+    # Start Flask in a separate thread
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.start()
 
-    app = Flask(__name__)
-
-    @app.route('/')
-    def home():
-        return "Bot is running!"
-
-    @app.route('/telegram', methods=['POST'])
-    def telegram_webhook():
-        if request.method == 'POST':
-            try:
-                update = Update.de_json(request.get_json(force=True), application.bot)
-                # Use the existing event loop
-                asyncio.run_coroutine_threadsafe(
-                    application.process_update(update),
-                    loop
-                ).result()
-                return 'OK'
-            except Exception as e:
-                logging.error(f"Error in webhook: {e}")
-                return 'Error', 500
-        return 'Only POST requests are allowed'
-
-    # Run Flask in a separate thread
-    from threading import Thread
-    def run_flask():
-        app.run(host='0.0.0.0', port=PORT)
-    
-    Thread(target=run_flask).start()
-    
-    # Keep the main event loop running
+    # Set the webhook for the Telegram bot
     try:
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        loop.close()
+        await asyncio.sleep(1.0)
+        await application.bot.set_webhook(url=f"{WEBHOOK_URL}")  # Update webhook URL
+        await asyncio.sleep(1.0)
+        await application.run_webhook(
+            listen="0.0.0.0",  # Listen on all available interfaces
+            port=10000,         # Port to listen on
+            url_path="",       # Empty path to handle root requests
+            webhook_url=WEBHOOK_URL,
+            drop_pending_updates=True
+        )
+        return application
 
-if __name__ == "__main__":
-    print("Starting bot...")
+    except Exception as e:
+        logging.error(f"Error in webhook setup: {e}")
+        raise
+
+def run_bot():
+    """Runner function to handle the event loop"""
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.INFO
     )
-    #logging.info("Bot initialization started")
-    
+
     try:
-        loop.run_until_complete(main())
+        loop = asyncio.get_event_loop()
+        application = loop.run_until_complete(main())
+        
+        # Updated webhook configuration for Render
+        application.run_webhook(
+            listen="0.0.0.0",  # Listen on all available network interfaces
+            port=PORT,         # Use the PORT from environment variable
+            url_path=BOT_TOKEN,
+            webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",  # Use Render's external URL
+            drop_pending_updates=True
+        )
     except KeyboardInterrupt:
-        print("Bot stopped by user")
         logging.info("Bot stopped by user")
     except Exception as e:
-        print(f"Fatal error: {e}")
         logging.error(f"Fatal error: {e}")
         raise
+
+if __name__ == "__main__":
+    run_bot()
