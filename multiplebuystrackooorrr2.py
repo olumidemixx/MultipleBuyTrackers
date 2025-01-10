@@ -22,6 +22,9 @@ from telegram import Chat
 
 nest_asyncio.apply()
 WEBHOOK_URL = "https://multiplebuytrackers-x2ex.onrender.com"  # Use Render's external URL
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
 
 # Telegram bot configuration
 dotenv_path = find_dotenv()
