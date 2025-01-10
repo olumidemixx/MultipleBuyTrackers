@@ -9,25 +9,22 @@ import asyncio
 import sys
 import nest_asyncio
 from collections import defaultdict
-
-import threading  # Import threading for running Flask in a separate thread
-#from keep_alive import keep_alive
+from keep_alive import keep_alive
 from telegram import Chat
 
 #{os.getenv('RENDER_EXTERNAL_URL', '')}
 #PORT = int(os.getenv("PORT", 8000))
 
-#keep_alive()
+keep_alive()
 
 nest_asyncio.apply()
-WEBHOOK_URL = "https://multiplebuytrackers-clgg.onrender.com"  # Use Render's external URL
 
 # Telegram bot configuration
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
-PORT = 10000
+PORT = 8443
 # Telethon client configuration
-BOT_TOKEN = "7951730271:AAH1i5RbbJgWZ-QDGcLVBOl0tuZPJiJKOyc"
+BOT_TOKEN = "7642138454:AAEU6sIWCXdaCqcP1ZwRnNGX_1YGsJoHgsU"
 API_ID = 21202746#int(os.getenv("API_ID"))
 API_HASH = "e700432294937e6925a83149ee7165a0"#os.getenv("API_HASH")
 
@@ -129,6 +126,56 @@ def extract_mc_mcp(text):
         return f"{mc_type}:{value_info}"
     #return None
 
+def extract_standalone_numbers(text):
+    """Extract standalone positive or negative integers or floats (single or double digits) from the text, including floats with trailing zeros.
+    If the word '**seen**' is present, extract numbers within asterisks instead.
+    If the word '[SOL]' is present, extract numbers within asterisks as well."""
+    
+    numbers = []  # Initialize the list to store extracted numbers
+
+    # Check if the word '**seen**' is in the text
+    if '**Seen**' in text or '[SOL]' in text:
+        # Regular expression to find numbers within asterisks
+        pattern = r'\*(\d{1,2}(\.\d{1,5})?)\*'  # Adjusted to find numbers within asterisks
+        matches = re.findall(pattern, text)
+        # Extract the first group from each match (the number) and convert to float
+        numbers.extend([float(match[0]) for match in matches])  # Convert to float for consistency
+
+    # Regular expression to find standalone numbers (positive or negative)
+    pattern = r'(?<!\S)(-?\d{1,2}(\.\d{1,5})?)(?!\S)'  # Adjusted to allow up to 5 decimal places
+    matches = re.findall(pattern, text)
+    # Extract the first group from each match (the number) and convert to float
+    numbers.extend([float(match[0]) for match in matches])  # Convert to float for consistency
+    
+    return numbers
+
+def market(text):
+    """Extract numbers before 'K' or 'M' and convert them to float multiplied by 1000 or 1000000 respectively."""
+    market_values = []  # Initialize the list to store market values
+
+    # Check for "Mkt. Cap (FDV): $" and extract the integer if present, allowing for commas
+    fdv_pattern = r'Mkt\. Cap \(FDV\): \$(\d{1,3}(?:,\d{3})*)'
+    fdv_match = re.search(fdv_pattern, text)
+    if fdv_match:
+        # Remove commas and convert to integer
+        market_values.append(int(fdv_match.group(1).replace(',', '')))  # Add the extracted integer to the list
+
+    # Regular expression to find numbers followed by 'K' or 'M'
+    pattern = r'(-?\d+(\.\d+)?)(?=\s*[KkMm])'
+    matches = re.findall(pattern, text)
+
+    for match in matches:
+        number = float(match[0])  # Convert the matched number to float
+        if 'K' in text[text.index(match[0]) + len(match[0]):text.index(match[0]) + len(match[0]) + 1].upper():
+            market_values.append(number * 1000)  # Multiply by 1000 for 'K' or 'k'
+        elif 'M' in text[text.index(match[0]) + len(match[0]):text.index(match[0]) + len(match[0]) + 1].upper():
+            market_values.append(number * 1000000)  # Multiply by 1000000 for 'M' or 'm'
+
+    return market_values
+# Example usage
+# text = "I have 2.00000 SOL and -3 4.0 5 SOL and 3.400000."
+# print(extract_standalone_numbers(text))  # Output: [2.0, -3.0, 4.0, 5.0, 3.4]
+
 class Trade:
     def __init__(self, trader, amount, mc_mcp_info, pump_type):
         self.trader = trader
@@ -140,56 +187,105 @@ async def extract_last_trader_messages(chat_link, limit):
     """Extract the last messages from the specified Telegram chat that meet the trader criteria"""
     trader_data = {}  # Dictionary to store trader information
     
+    
 
     async for message in telethon_client.iter_messages(chat_link, limit=limit):
-        logging.info(chat_link)
        
-        
-        try:
-            if 'buy' in message.text.lower():
-                trader_name = "Trader" + extract_trader_name(message.text)  # Extract trader name
-                #logging.info(trader_name)
-                solana_addresses = extract_solana_address_and_amount(message.text)  # Extract all Solana addresses
-                #logging.info(solana_addresses)
-                if solana_addresses:
-                    if chat_link == 'https://t.me/spark_green_bot':
-                        third_address = solana_addresses[5]
-                        #logging.info(third_address)
-                    elif chat_link == 'https://t.me/ray_green_bot':
-                        third_address = solana_addresses[5]
-                        #logging.info(third_address)
-                        
-                    elif chat_link == 'https://t.me/Godeye_wallet_trackerBot':
-                        third_address = solana_addresses[2]
-                        #logging.info(third_address)                    
-                        #logging.info(third_address)
-                        #ogging.info(third_address)
-                    elif chat_link == 'https://t.me/Wallet_tracker_solana_spybot':
-                        if len(solana_addresses) >= 6:  # Check if index 6 exists
-                            third_address = solana_addresses[6]
-                        else:
-                            continue  # Skip to the next message
-                        #logging.info(third_address)
-                    else:
-                        third_address = solana_addresses[3]
-                        #logging.info(third_address)  # Get the third Solana address
-                    # Update the trader data dictionary
-                    if trader_name not in trader_data:
-                        trader_data[trader_name] = {'addresses': {}, 'count': 0}  # Initialize new trader entry
+        if message.text is None: 
+            continue       
+        # Check if the message contains 'buy' (case insensitive)
+        if 'buy' in message.text.lower():
+            trader_name = "Trader"+extract_trader_name(message.text)  # Extract trader name
+            #logging.info(trader_name)
+            solana_addresses = extract_solana_address_and_amount(message.text)  # Extract all Solana addresses
+            sol_amounts = extract_standalone_numbers(message.text)
+            sol_amount=0
+            market_cap=0
+
+
+            #global sol_amount, market_cap
+
+          
+            
+            #logging.info("MESSSSSAAAAAGGGGGGGGGGGGGGGGGGGGESSSSSSSSSSSSSSSSSSSS")
+            #logging.info(chat_link)
+            #logging.info(message.text)
+            #logging.info("CCCCCCCHHHHHHHHHHHAAAAAAAAATTTTTTTLLLLIIINNNNNNNKKKKKKKKKKKK")
+            
+            #logging.info("SOOOOOOOOOOOOOLLLLLLLLLLLLLLLLLLLLLAMMMMMMOOOUNNNNTT")
+            #logging.info(sol_amounts)
+
+            #logging.info(market_cap)
+
+
+            #logging.info(solana_addresses)
+            if solana_addresses:
+                if chat_link == 'https://t.me/spark_green_bot':
+                    third_address = solana_addresses[5]
+                    #logging.info(third_address)
                     
-                    # Check if the address already exists for this trader
-                    if third_address in trader_data[trader_name]['addresses']:
-                        trader_data[trader_name]['addresses'][third_address] += 1  # Increment count for this address
-                    else:
-                        trader_data[trader_name]['addresses'][third_address] = 1  # Initialize count for new address
+               
+                   
                     
-                    # Update the total count of messages for the trader
-                    trader_data[trader_name]['count'] += 1
-                
+                    
+                elif chat_link == 'https://t.me/ray_green_bot':
+                    third_address = solana_addresses[5]
+                    #logging.info(third_address)
+                    #logging.info(message.text)
+                    
+
+                    #logging.info(market_cap)
+                    
+                    
+                elif chat_link == 'https://t.me/Godeye_wallet_trackerBot':
+                    third_address = solana_addresses[2]
+                    
+                    #logging.info(message.text)
+                    #logging.info(market_cap)
+                elif chat_link == 'https://t.me/Wallet_tracker_solana_spybot':
+                    third_address = solana_addresses[6]
+                    
+                    #logging.info(message.text)
+                    
+
+                    sol_amount = sol_amounts[0]
+                    #logging.info(sol_amount)
+
+                    
+                    #logging.info(market_cap)
+
                 else:
-                    continue
-        except AttributeError as e:
-            logging.error(f"Error processing message: {e}")  # Log the error
+                    third_address = solana_addresses[3]
+                   
+
+                    #logging.info(third_address)  # Get the third Solana address
+                    #logging.info(message.text)
+                    sol_amount = sol_amounts[0]
+                    #logging.info(sol_amount)
+                # Update the trader data dictionary
+
+               
+                if trader_name not in trader_data:
+                    trader_data[trader_name] = {
+                        'addresses': {},
+                        'count': 0,
+                        'sol_amount': sol_amount,  # Store the sol_amount directly
+                        'market_cap': market_cap    # Store the market_cap directly
+                    }  # Initialize new trader entry with sol_amount and market_cap
+                
+                # Check if the address already exists for this trader
+
+            
+
+                if third_address in trader_data[trader_name]['addresses']:
+                    trader_data[trader_name]['addresses'][third_address] += 1  # Increment count for this address
+                else:
+                    trader_data[trader_name]['addresses'][third_address] = 1  # Initialize count for new address
+                
+                # Update the total count of messages for the trader
+                trader_data[trader_name]['count'] += 1
+        else:
+            continue
     
     #logging.info(trader_data)
     return trader_data
@@ -222,10 +318,11 @@ async def stop(update, context):
 async def send_trader_messages(trader_data, chat_id, context):
     """Send messages for each trader and their purchased tokens."""
     messages_to_send = []
-    for trader_name, data in trader_data.items():
+    for trader_name, data in trader_data.items():  # Unpack only trader_name and data
+        
         for token, count in data['addresses'].items():
             if count == 2:  # Check if the trader bought the token more than once
-                message = f"{trader_name} bought `{token}` {count} times"
+                message = f"{trader_name} bought `{token}`  {count} times"
                 messages_to_send.append(message)
     return messages_to_send
 
@@ -253,7 +350,6 @@ async def continuous_scraping(update, context):
         
         
         for chat_link, limit in chat_links_with_limits.items():
-            await asyncio.sleep(0.8)
             messages = await extract_last_trader_messages(chat_link, limit)
 
             listOfMultipleBuys = await send_trader_messages(messages, chat_id, context)
@@ -272,10 +368,9 @@ async def continuous_scraping(update, context):
             for message in current_messages[:200]:
                 
                 if message not in previous_messages[:200]:
-                    has_change = True
                     #logging.info(message)
                     previous_messages.append(message)
-                    
+                    has_change = True
                     
 
                     if sent_count < 2:  # Check if less than 2 messages have been sent
@@ -284,12 +379,10 @@ async def continuous_scraping(update, context):
                             text=message,
                             parse_mode='Markdown'
                         )
-                        
                         sent_count += 1  # Increment the counter
+                        await asyncio.sleep(3)
             if has_change is False:
                logging.info("no new messages")
-               await asyncio.sleep(2.2)
-               #await asyncio.sleep()
         
         # Wait 10 seconds before starting the next round
         await asyncio.sleep(2)
@@ -299,7 +392,7 @@ async def start(update, context):
     if (await check_authorization(update)):
         if update.effective_chat.id == -1002272071296:  # Check if the command is from the target gr
             global target_group_id
-            target_group_id = -1002447422257
+            target_group_id = -1002447422257#-1002272071296 #-1002462744306
             if update.message.text.startswith(f"@{BOT_TOKEN.split(':')[0]}"):
                 last_processed_messages.clear()
                 await context.bot.send_message(
@@ -324,8 +417,6 @@ async def start(update, context):
     
     
 
-
-
 async def main():
     """Start the bot with webhook"""
     await initialize_telethon()  # Start the Telethon client
@@ -337,20 +428,20 @@ async def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("stop", stop))
 
+    # Get the webhook URL from environment variable or use a default for local testing
+    WEBHOOK_URL = "https://multiplebuytrackers-4kjh.onrender.com"  # Update this line with your Render URL
     
-
-    # Set the webhook for the Telegram bot
     try:
         await asyncio.sleep(1.0)
-        await application.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")  # Update webhook URL
+        await application.bot.set_webhook(url=f"{WEBHOOK_URL}")
         await asyncio.sleep(1.0)
         await application.run_webhook(
-            listen="0.0.0.0",  # Listen on all available interfaces
-            port=10000,         # Port to listen on
-            url_path="",       # Empty path to handle root requests
-            webhook_url=WEBHOOK_URL,
-            drop_pending_updates=True
-        )
+        listen="0.0.0.0",  # Listen on all available interfaces
+        port=8443,         # Port to listen on
+        url_path="",       # Empty path to handle root requests
+        webhook_url=WEBHOOK_URL,
+        drop_pending_updates=True
+    )
         return application
 
     except Exception as e:
@@ -373,9 +464,10 @@ def run_bot():
             listen="0.0.0.0",  # Listen on all available network interfaces
             port=PORT,         # Use the PORT from environment variable
             url_path=BOT_TOKEN,
-            webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",  # Use Render's external URL
+            webhook_url=f"https://multiplebuytrackers-4kjh.onrender.com/{BOT_TOKEN}",
             drop_pending_updates=True
         )
+
     except KeyboardInterrupt:
         logging.info("Bot stopped by user")
     except Exception as e:
