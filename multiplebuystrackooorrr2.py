@@ -52,11 +52,15 @@ last_processed_messages = defaultdict(set)
 # Flag to control continuous scraping
 continue_scraping = True
 
+global chat_id
+
 async def check_authorization(update):
     """Check if the user/group is authorized to use the bot"""
     chat_id = update.effective_chat.id
     user_username = update.effective_user.username
     chat_username = update.effective_chat.username
+    
+    
     if chat_id == -1002272071296:
         return True
     
@@ -132,11 +136,12 @@ def extract_mc_mcp(text):
     #return None
 
 class Trade:
-    def __init__(self, trader, amount, mc_mcp_info, pump_type):
+    def __init__(self, trader, amount, mc_mcp_info, pump_type,id):
         self.trader = trader
         self.amount = amount
         self.mc_mcp_info = mc_mcp_info
         self.pump_type = pump_type
+        self.chat_id = id
 
 async def extract_last_trader_messages(chat_link, limit):
     """Extract the last messages from the specified Telegram chat that meet the trader criteria"""
@@ -338,8 +343,10 @@ async def main():
     application = Application.builder().token(BOT_TOKEN).build()
     await application.initialize()
     await application.start()
-
     
+    session = Trade(chat_id)
+
+    session.monitoring_task = asyncio.create_task(continuous_scraping(application, session))
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("stop", stop))
 
