@@ -327,7 +327,7 @@ async def start(update, context):
    
     
     
-PORT = int(os.environ.get('PORT', '8080'))
+
 # Initialize Flask app
 flask_app = Flask(__name__)
 
@@ -346,7 +346,7 @@ def home():
 
 def run_flask():
     """Run the Flask app."""
-    flask_app.run(host='0.0.0.0', port=10000)  # Run Flask on port 5000
+    flask_app.run(host='0.0.0.0', port=5000)  # Run Flask on port 5000
 
 async def main():
     """Start the bot with webhook"""
