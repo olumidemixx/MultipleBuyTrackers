@@ -1,4 +1,3 @@
-
 import os
 import re
 import time
@@ -10,7 +9,7 @@ import asyncio
 import sys
 import nest_asyncio
 from collections import defaultdict
-from flask import Flask, request  # Import Flask
+
 import threading  # Import threading for running Flask in a separate thread
 #from keep_alive import keep_alive
 from telegram import Chat
@@ -21,10 +20,7 @@ from telegram import Chat
 #keep_alive()
 
 nest_asyncio.apply()
-WEBHOOK_URL = "https://multiplebuytrackers-x2ex.onrender.com"  # Use Render's external URL
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-
+WEBHOOK_URL = "https://multiplebuytrackers-clgg.onrender.com"  # Use Render's external URL
 
 # Telegram bot configuration
 dotenv_path = find_dotenv()
@@ -328,25 +324,7 @@ async def start(update, context):
     
     
 
-# Initialize Flask app
-flask_app = Flask(__name__)
 
-@flask_app.route('/webhook', methods=['POST'])
-def webhook():
-    """Receive updates from Telegram and process them."""
-    update = request.get_json()
-    # Here you can process the update as needed
-    logging.info(f"Received update: {update}")
-    return "OK", 200
-
-@flask_app.route('/', methods=['GET'])
-def home():
-    """Check if the bot is running."""
-    return "The bot is running!", 200  # Simple message indicating the bot is active
-
-def run_flask():
-    """Run the Flask app."""
-    flask_app.run(host='0.0.0.0', port=5000)  # Run Flask on port 5000
 
 async def main():
     """Start the bot with webhook"""
@@ -359,14 +337,12 @@ async def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("stop", stop))
 
-    # Start Flask in a separate thread
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.start()
+    
 
     # Set the webhook for the Telegram bot
     try:
         await asyncio.sleep(1.0)
-        await application.bot.set_webhook(url=f"{WEBHOOK_URL}")  # Update webhook URL
+        await application.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")  # Update webhook URL
         await asyncio.sleep(1.0)
         await application.run_webhook(
             listen="0.0.0.0",  # Listen on all available interfaces
