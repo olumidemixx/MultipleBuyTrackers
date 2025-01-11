@@ -24,7 +24,7 @@ dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
 PORT = 8443
 # Telethon client configuration
-BOT_TOKEN = "7951730271:AAH1i5RbbJgWZ-QDGcLVBOl0tuZPJiJKOyc"
+BOT_TOKEN = "7642138454:AAEU6sIWCXdaCqcP1ZwRnNGX_1YGsJoHgsU"
 API_ID = 21202746#int(os.getenv("API_ID"))
 API_HASH = "e700432294937e6925a83149ee7165a0"#os.getenv("API_HASH")
 
