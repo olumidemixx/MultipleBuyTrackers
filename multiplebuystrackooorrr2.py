@@ -24,7 +24,7 @@ dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
 PORT = 8443
 # Telethon client configuration
-BOT_TOKEN = "7642138454:AAEU6sIWCXdaCqcP1ZwRnNGX_1YGsJoHgsU"
+BOT_TOKEN = "7951730271:AAH1i5RbbJgWZ-QDGcLVBOl0tuZPJiJKOyc"
 API_ID = 21202746#int(os.getenv("API_ID"))
 API_HASH = "e700432294937e6925a83149ee7165a0"#os.getenv("API_HASH")
 
@@ -52,7 +52,7 @@ async def check_authorization(update):
     chat_id = update.effective_chat.id
     user_username = update.effective_user.username
     chat_username = update.effective_chat.username
-    if chat_id == -1002272071296:
+    if chat_id == -1002462744306:#-1002272071296:
         return True
     
     #if update.effective_chat.type == 'private':
@@ -205,7 +205,11 @@ async def extract_last_trader_messages(chat_link, limit):
 
             #global sol_amount, market_cap
 
-          
+            market_caps = market(message.text)
+            if sol_amounts == []:
+                        continue
+            if market_caps == []:
+                continue
             
             #logging.info("MESSSSSAAAAAGGGGGGGGGGGGGGGGGGGGESSSSSSSSSSSSSSSSSSSS")
             #logging.info(chat_link)
@@ -225,21 +229,29 @@ async def extract_last_trader_messages(chat_link, limit):
                     #logging.info(third_address)
                     
                
-                   
-                    
+                    sol_amount = sol_amounts[0]
+                    if len(market_caps) < 4:
+                        market_cap = market_caps[-1]
+                    else:
+                        market_cap = market_caps[3]
+                    #logging.info(market_cap)
                     
                 elif chat_link == 'https://t.me/ray_green_bot':
                     third_address = solana_addresses[5]
                     #logging.info(third_address)
                     #logging.info(message.text)
-                    
+                    if len(market_caps) > 1:
+                        market_cap = market_caps[-1]
+                    else:
+                        market_cap = market_caps[0]
 
                     #logging.info(market_cap)
                     
                     
                 elif chat_link == 'https://t.me/Godeye_wallet_trackerBot':
                     third_address = solana_addresses[2]
-                    
+                    sol_amount = sol_amounts[0]
+                    market_cap = market_caps[-1]
                     #logging.info(message.text)
                     #logging.info(market_cap)
                 elif chat_link == 'https://t.me/Wallet_tracker_solana_spybot':
@@ -251,19 +263,26 @@ async def extract_last_trader_messages(chat_link, limit):
                     sol_amount = sol_amounts[0]
                     #logging.info(sol_amount)
 
-                    
+                    if len(market_caps) == 2:
+                        market_cap = market_caps[0]
+                    else:
+                        market_cap = market_caps[1]
                     #logging.info(market_cap)
 
                 else:
                     third_address = solana_addresses[3]
-                   
+                    market_cap = market_caps[0]
+                    logging.info(message.text)
+                    logging.info(market_cap)
 
                     #logging.info(third_address)  # Get the third Solana address
                     #logging.info(message.text)
+                    sol_amount = sol_amounts[0]
                     #logging.info(sol_amount)
                 # Update the trader data dictionary
 
-               
+                if sol_amount <= 5 or market_cap >= 1000000:
+                    continue
                 if trader_name not in trader_data:
                     trader_data[trader_name] = {
                         'addresses': {},
@@ -318,10 +337,11 @@ async def send_trader_messages(trader_data, chat_id, context):
     """Send messages for each trader and their purchased tokens."""
     messages_to_send = []
     for trader_name, data in trader_data.items():  # Unpack only trader_name and data
-        
+        sol_amount = data.get('sol_amount', 0)  # Access sol_amount from data
+        market_cap = data.get('market_cap', 0)  # Access market_cap from data
         for token, count in data['addresses'].items():
-            if count == 2:  # Check if the trader bought the token more than once
-                message = f"{trader_name} bought `{token}`  {count} times"
+            if count == 1:  # Check if the trader bought the token more than once
+                message = f"{trader_name} bought `{token}` with {sol_amount} under 1 milllion marketcap"
                 messages_to_send.append(message)
     return messages_to_send
 
@@ -389,9 +409,9 @@ async def continuous_scraping(update, context):
 async def start(update, context):
     """Start the continuous message extraction process"""
     if (await check_authorization(update)):
-        if update.effective_chat.id == -1002272071296:  # Check if the command is from the target gr
+        if update.effective_chat.id == -1002462744306:  # Check if the command is from the target gr
             global target_group_id
-            target_group_id = -1002447422257#-1002272071296 #-1002462744306
+            target_group_id = -1002272071296#-1002447422257#-1002272071296 #-1002462744306
             if update.message.text.startswith(f"@{BOT_TOKEN.split(':')[0]}"):
                 last_processed_messages.clear()
                 await context.bot.send_message(
@@ -414,6 +434,7 @@ async def start(update, context):
     
    
     
+    
 PORT = 10000
 
 async def main():
@@ -428,7 +449,7 @@ async def main():
     application.add_handler(CommandHandler("stop", stop))
 
     # Get the webhook URL from environment variable or use a default for local testing
-    WEBHOOK_URL = "https://multiplebuytrackers-4kjh.onrender.com"  # Update this line with your Render URL
+    WEBHOOK_URL = "https://bigbuysbytraders.onrender.com"  # Update this line with your Render URL
     
     try:
         await asyncio.sleep(1.0)
@@ -463,7 +484,7 @@ def run_bot():
             listen="0.0.0.0",  # Listen on all available network interfaces
             port=PORT,         # Use the PORT from environment variable
             url_path=BOT_TOKEN,
-            webhook_url=f"https://multiplebuytrackers-4kjh.onrender.com/{BOT_TOKEN}",
+            webhook_url=f"https://bigbuysbytraders.onrender.com/{BOT_TOKEN}",
             drop_pending_updates=True
         )
 
