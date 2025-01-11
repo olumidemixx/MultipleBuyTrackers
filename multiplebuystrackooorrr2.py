@@ -260,7 +260,6 @@ async def extract_last_trader_messages(chat_link, limit):
 
                     #logging.info(third_address)  # Get the third Solana address
                     #logging.info(message.text)
-                    sol_amount = sol_amounts[0]
                     #logging.info(sol_amount)
                 # Update the trader data dictionary
 
